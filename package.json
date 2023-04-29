@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon src/server.ts",
     "start": "node ./dist/server.js",
-    "watch-ts": "tcs -w",
+    "watch-ts": "tsc -w",
     "build": "npm install && tsc"
   },
   "keywords": [

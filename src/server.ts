@@ -43,7 +43,7 @@ const pool =
         connectionString: DATABASE_URL,
         ssl: {
           rejectUnauthorized: false,
-        }
+        },
       });
 
 export default pool;
