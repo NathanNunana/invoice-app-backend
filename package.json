@@ -5,11 +5,9 @@
   "main": "src/server.js",
   "scripts": {
     "dev": "nodemon src/server.ts",
-    "serve": "node dist/server.js",
+    "start": "node ./dist/server.js",
     "watch-ts": "tcs -w",
-    "build-ts": "tsc",
-    "build": "npm run build-ts",
-    "start": "npm run serve"
+    "build": "npm install && tsc"
   },
   "keywords": [
     "invoice-app",
