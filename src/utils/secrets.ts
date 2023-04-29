@@ -24,3 +24,4 @@ export const POSTGRES_PORT = prod
 export const POSTGRES_PASSWORD = prod
   ? process.env["POSTGRES_PASSWORD"]
   : process.env["POSTGRES_LOCAL_PASSWORD"];
+export const DATABASE_URL = prod ? process.env["DATABASE_URL"] : null;
