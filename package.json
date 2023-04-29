@@ -4,10 +4,12 @@
   "description": "backend support for the amalitech invoice app",
   "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/server.ts",
-    "start": "node dist/server.js",
-    "build": "tsc"
+    "serve": "node dist/server.js",
+    "watch-ts": "tcs -w",
+    "build-ts": "tsc",
+    "build": "npm run build-ts",
+    "start": "npm run serve"
   },
   "keywords": [
     "invoice-app",
