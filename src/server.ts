@@ -32,15 +32,21 @@ app.listen(app.get("port"), () => {
 /**
  * db connection
  */
-const pool = process.env.NODE_ENV === "development" ? new Pool({
-  user: POSTGRES_USER,
-  host: POSTGRES_HOST,
-  database: POSTGRES_DATABASE,
-  password: POSTGRES_PASSWORD,
-  port: parseInt(POSTGRES_PORT),
-}) : new Pool({
-  connectionString: DATABASE_URL,
-});
+const pool =
+  process.env.NODE_ENV === "development"
+    ? new Pool({
+        user: POSTGRES_USER,
+        host: POSTGRES_HOST,
+        database: POSTGRES_DATABASE,
+        password: POSTGRES_PASSWORD,
+        port: parseInt(POSTGRES_PORT),
+      })
+    : new Pool({
+        connectionString: DATABASE_URL,
+        ssl: {
+          rejectUnauthorized: false,
+        }
+      });
 
 // Define your Swagger specification here
 /**
@@ -85,7 +91,7 @@ const pool = process.env.NODE_ENV === "development" ? new Pool({
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Invoice'
- * 
+ *
  * /invoice/create:
  *   post:
  *     summary: Create a new invoice
@@ -128,7 +134,7 @@ const pool = process.env.NODE_ENV === "development" ? new Pool({
  *         description: Invoice not found
  *       500:
  *         description: Internal server error
- * 
+ *
  * /invoice/mark/{id}:
  *   put:
  *     summary: Update the status of a single invoice.
@@ -165,7 +171,7 @@ const pool = process.env.NODE_ENV === "development" ? new Pool({
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- * 
+ *
  * /invoice/delete/{id}:
  *   delete:
  *     summary: Delete an invoice
@@ -188,7 +194,7 @@ const pool = process.env.NODE_ENV === "development" ? new Pool({
 
 const swaggerSpec = swaggerJSDoc({
   // Specify the Swagger version to use (default is 2)
-    definition: {
+  definition: {
     openapi: "3.0.0", // for OpenAPI 3.0.0 specification
     info: {
       title: "Invoice Backend Service", // Name of the API
