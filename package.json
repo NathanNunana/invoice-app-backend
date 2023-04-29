@@ -9,8 +9,7 @@
     "watch-ts": "tcs -w",
     "build-ts": "tsc",
     "build": "npm run build-ts",
-    "start": "npm run serve",
-    "postinstall": "npm install -g typescript"
+    "start": "npm run serve"
   },
   "keywords": [
     "invoice-app",
