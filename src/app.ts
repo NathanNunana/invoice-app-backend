@@ -34,7 +34,7 @@ const swaggerSpec = swaggerJSDoc({
       },
       servers: [
         {
-          url: "http://localhost:3000", // URL of the server hosting the API
+          url: "https://invoice-app-backend-dfaj.onrender.com/invoice", // URL of the server hosting the API
         },
       ],
       // Add security definitions (e.g. API key, OAuth2)
