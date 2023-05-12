@@ -6,6 +6,7 @@ import {
   deleteInvoice,
   markInvoiceAsPaid,
   readInvoiceById,
+  filterByStatus
 } from "../controllers/invoice";
 
 const router = Router();
@@ -39,5 +40,10 @@ router.delete("/remove/:id", deleteInvoice);
  * mark invoice as paid route
  */
 router.put("/mark/:id", markInvoiceAsPaid);
+
+/**
+ * filter invoices
+ */
+router.get("/filter/:status", filterByStatus);
 
 export default router;

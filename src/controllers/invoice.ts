@@ -188,3 +188,26 @@ export const markInvoiceAsPaid = async (req: Request, res: Response) => {
     console.log(e);
   }
 };
+
+/**
+ * filter invoices by status
+ */
+export const filterByStatus = async (req: Request, res: Response) => {
+  try {
+    const { status } = req.params;
+    const query = `
+        SELECT * FROM invoices 
+        WHERE 
+            status = '${status}';
+    `;
+    const invoice = await pool.query(query);
+    // json response
+    res.json({
+      success: true,
+      message: `${status} invoices`,
+      invoice: invoice.rows,
+    });
+  } catch (e) {
+    console.log(e);
+  }
+};
