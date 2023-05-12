@@ -161,9 +161,26 @@ app.use("/invoice", router);
  *         description: Invoice not found
  *       500:
  *         description: Internal server error
+ * 
+ * /invoice/filter/{status}:
+ *   get:
+ *     summary: Filter an invoice by status
+ *     parameters:
+ *       - in: path
+ *         name: status
+ *         schema:
+ *           type: STATUS
+ *         required: true
+ *         description: status name of the invoice to delete
+ *     responses:
+ *       200:
+ *         description: OK
+ *       404:
+ *         description: Invoice not found
+ *       500:
+ *         description: Internal server error
  *
  */
-
 
 /**
  * swagger js doc
