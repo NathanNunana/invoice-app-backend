@@ -1,6 +1,9 @@
 import { Response, Request } from "express";
 import { v4 } from "uuid";
 import pool from "../server";
+import nodemailer from "nodemailer";
+import { APP_EMAIL, APP_PASSWORD } from "../utils/secrets";
+import Mailgen from "mailgen";
 
 /**
  * create invoice controller
@@ -40,10 +43,89 @@ export const createInvoice = async (req: Request, res: Response) => {
             '${JSON.stringify(data.items)}')`;
     // run query
     const invoice = await pool.query(query);
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: APP_EMAIL,
+        pass: APP_PASSWORD,
+      },
+    });
+
+    // Create a Mailgen instance
+    const mailGenerator = new Mailgen({
+      theme: "default",
+      product: {
+        name: "Amalitech",
+        link: "https://amalitech.org",
+        logo: "https://amalitech.org/wp-content/uploads/2020/01/Logo-1.png",
+      },
+    });
+
+    // Create email content
+    const email = {
+      body: {
+        name: data.clientName,
+        intro: "Thank you for your purchase! Here is your invoice:",
+        table: {
+          data: data.items.map((item: any) => ({
+            description: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            amount: item.total,
+          })),
+          columns: {
+            customWidth: {
+              description: "55%",
+              quantity: "15%",
+              price: "15%",
+              amount: "15%",
+            },
+            customAlignment: {
+              price: "right",
+              amount: "right",
+            },
+          },
+        },
+        outro: `Payment is due by ${data.paymentDue.substring(
+          0,
+          10
+        )}. If you have any questions, please contact us at support@example.com.`,
+        signature: "Thank you,",
+        action: {
+          instructions: "To make a payment, please click the button below:",
+          button: {
+            color: "#7c5dfa",
+            text: "Pay Now",
+            link: "https://yourcompany.com/payment",
+          },
+        },
+      },
+    };
+    // Generate the HTML email using Mailgen
+    const emailBody = mailGenerator.generate(email);
+
+    // Define the email options
+    const mailOptions = {
+      from: `${APP_EMAIL}`,
+      to: `${data.clientEmail}`,
+      subject: "Invoice for your request",
+      html: emailBody,
+    };
+
+    await transporter
+      .sendMail(mailOptions)
+      .then(() =>
+        res.status(201).json({
+          msg: "You should receive an email",
+        })
+      )
+      .catch((e) => res.status(500).json({ error: e }));
+
     // json response
     res.json({
       success: true,
-      message: `invoice with id: ${id.substring(0, 6).toUpperCase()} created`,
+      message: `invoice with id: ${id.substring(0, 6).toUpperCase()} created.`,
       invoice: invoice,
     });
   } catch (e) {

@@ -9,6 +9,10 @@ if (fs.existsSync(".env")) {
 export const ENVIRONMENT = process.env.NODE_ENV;
 const prod = ENVIRONMENT === "production"; // Anything else is treated as 'dev'
 
+
+export const APP_PASSWORD = process.env["APP_PASSWORD"];
+export const APP_EMAIL = process.env["APP_EMAIL"];
+
 export const POSTGRES_USER = prod
   ? process.env["POSTGRES_USER"]
   : process.env["POSTGRES_LOCAL_USER"];
