@@ -69,21 +69,20 @@ export const createInvoice = async (req: Request, res: Response) => {
         intro: "Thank you for your purchase! Here is your invoice:",
         table: {
           data: data.items.map((item: any) => ({
-            description: item.name,
+            name: item.name,
             quantity: item.quantity,
             price: item.price,
-            amount: item.total,
+            total: item.total,
           })),
           columns: {
             customWidth: {
-              description: "55%",
+              name: "15%",
               quantity: "15%",
               price: "15%",
-              amount: "15%",
+              total: "15%",
             },
             customAlignment: {
-              price: "right",
-              amount: "right",
+              total: "right",
             },
           },
         },
@@ -96,14 +95,16 @@ export const createInvoice = async (req: Request, res: Response) => {
           instructions: "To make a payment, please click the button below:",
           button: {
             color: "#7c5dfa",
-            text: "Pay Now",
-            link: "https://yourcompany.com/payment",
+            text: `Pay £${data.total.toFixed(2)}`,
+            link: "https://paystack.com/gh/demo/checkout",
           },
         },
       },
     };
     // Generate the HTML email using Mailgen
     const emailBody = mailGenerator.generate(email);
+
+    require("fs").writeFileSync("preview.html", emailBody, "utf8");
 
     // Define the email options
     const mailOptions = {
@@ -256,8 +257,6 @@ export const markInvoiceAsPaid = async (req: Request, res: Response) => {
         WHERE 
             id = '${id}';
     `;
-    console.log(query);
-    console.log(id);
     // run query
     const invoice = await pool.query(query);
     // json response

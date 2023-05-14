@@ -32,14 +32,16 @@ app.listen(app.get("port"), () => {
  */
 const pool =
   process?.env.NODE_ENV === "development"
-    ? new Pool({
+    ? 
+    new Pool({
         user: POSTGRES_USER,
         host: POSTGRES_HOST,
         database: POSTGRES_DATABASE,
         password: POSTGRES_PASSWORD,
         port: parseInt(POSTGRES_PORT),
       })
-    : new Pool({
+    : 
+    new Pool({
         connectionString: DATABASE_URL,
         ssl: {
           rejectUnauthorized: false,
