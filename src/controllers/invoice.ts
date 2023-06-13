@@ -164,10 +164,12 @@ export const readInvoice = async (req: Request, res: Response) => {
 export const readInvoiceById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    console.log(id)
     // select query
-    const query = `SELECT * FROM invoices WHERE id = ${id}`;
+    const query = `SELECT * FROM invoices WHERE id = '${id}'`;
     // run query
     const invoices = await pool.query(query);
+    console.log(invoices)
     // json response
     res.json({
       success: true,
