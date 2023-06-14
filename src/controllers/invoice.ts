@@ -114,6 +114,7 @@ export const createInvoice = async (req: Request, res: Response) => {
       html: emailBody,
     };
 
+    (data.status.toLowerCase() === "draft") ? null:
     await transporter
       .sendMail(mailOptions)
       .then(() =>
