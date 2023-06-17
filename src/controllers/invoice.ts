@@ -41,6 +41,8 @@ export const createInvoice = async (req: Request, res: Response) => {
             '${JSON.stringify(data.sendersAddress)}', 
             '${JSON.stringify(data.clientAddress)}', 
             '${JSON.stringify(data.items)}')`;
+
+    console.log(query)
     // run query
     const invoice = await pool.query(query);
 
@@ -114,15 +116,16 @@ export const createInvoice = async (req: Request, res: Response) => {
       html: emailBody,
     };
 
-    (data.status.toLowerCase() === "draft") ? null:
-    await transporter
-      .sendMail(mailOptions)
-      .then(() =>
-        res.status(201).json({
-          msg: "You should receive an email",
-        })
-      )
-      .catch((e) => res.status(500).json({ error: e }));
+    data.status.toLowerCase() === "draft"
+      ? null
+      : await transporter
+          .sendMail(mailOptions)
+          .then(() =>
+            res.status(201).json({
+              msg: "You should receive an email",
+            })
+          )
+          .catch((e) => res.status(500).json({ error: e }));
 
     // json response
     res.json({
@@ -165,12 +168,12 @@ export const readInvoice = async (req: Request, res: Response) => {
 export const readInvoiceById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    console.log(id)
+    console.log(id);
     // select query
     const query = `SELECT * FROM invoices WHERE id = '${id}'`;
     // run query
     const invoices = await pool.query(query);
-    console.log(invoices)
+    console.log(invoices);
     // json response
     res.json({
       success: true,
