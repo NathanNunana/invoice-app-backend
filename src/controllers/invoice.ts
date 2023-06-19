@@ -322,14 +322,7 @@ export const markInvoiceAsPaid = async (req: Request, res: Response) => {
       }
 
       const subtotalPosition = invoiceTableTop + (i + 1) * 30;
-      generateTableRow(
-        doc,
-        subtotalPosition,
-        "",
-        "Total",
-        "",
-        invoice.total
-      );
+      generateTableRow(doc, subtotalPosition, "", "Total", "", invoice.total);
 
       const paidToDatePosition = subtotalPosition + 20;
       generateTableRow(
@@ -357,7 +350,7 @@ export const markInvoiceAsPaid = async (req: Request, res: Response) => {
     };
 
     doc
-      // .image(`logo.png`, 50, 45, { width: 50 })
+      .image(`assets/logo.png`, 50, 45, { width: 50 })
       .fillColor("#444444")
       .fontSize(20)
       .text("Amalitech.", 110, 57)
@@ -410,43 +403,51 @@ export const markInvoiceAsPaid = async (req: Request, res: Response) => {
     doc
       .fontSize(10)
       .text(
-        "Payment is due within 15 days. Thank you for your business.",
+        `Payment is due ${data.rows[0].paymentDue}. Thank you for your business.`,
         50,
         780,
         { align: "center", width: 500 }
       );
 
-    
     doc.end();
 
-    const invoicePath = `invoice_${data.rows[0].id}.pdf`
+    const invoicePath = `pdfs/invoice_${data.rows[0].id}.pdf`;
 
     doc.pipe(fs.createWriteStream(invoicePath));
+
+    console.log(`client: ${data.rows[0].clientemail}`);
 
     await transporter
       .sendMail({
         from: `${APP_EMAIL}`,
-        to: `${data.rows[0].clientEmail}`,
+        to: `${data.rows[0].clientemail}`,
         subject: "Invoice for your request",
-        attachments: [{
-          filename: 'invoice.pdf',
-          path: invoicePath,
-          contentType: 'application/pdf',
-        }],
+        text: 'Please find attached PDF copy of paid invoice',
+        attachments: [
+          {
+            filename: "invoice.pdf",
+            path: invoicePath,
+            contentType: "application/pdf",
+          },
+        ],
       })
-      .then(() =>
+      .then(() => {
         res.status(201).json({
-          msg: "You should receive an email",
-        })
-      )
-      .catch((e) => res.status(500).json({ error: e }));
+          success: true,
+          message: `invoice #${id} paid`,
+          invoice: invoice.rows,
+        });
+      })
+      .catch((e) => {
+        res.status(500).json({ error: e });
+      });
 
     // json response
-    res.json({
-      success: true,
-      message: `invoice #${id} paid`,
-      invoice: invoice.rows,
-    });
+    // res.json({
+    //   success: true,
+    //   message: `invoice #${id} paid`,
+    //   invoice: invoice.rows,
+    // });
   } catch (e) {
     console.log(e);
   }
