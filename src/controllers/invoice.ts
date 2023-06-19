@@ -6,6 +6,7 @@ import { APP_EMAIL, APP_PASSWORD } from "../utils/secrets";
 import Mailgen from "mailgen";
 import PDFDocument from "pdfkit";
 import fs from "fs";
+import path from "path";
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -350,7 +351,7 @@ export const markInvoiceAsPaid = async (req: Request, res: Response) => {
     };
 
     doc
-      .image(`assets/logo.png`, 50, 45, { width: 50 })
+      .image(`src/assets/logo.png`, 50, 45, { width: 50 })
       .fillColor("#444444")
       .fontSize(20)
       .text("Amalitech.", 110, 57)
@@ -411,7 +412,12 @@ export const markInvoiceAsPaid = async (req: Request, res: Response) => {
 
     doc.end();
 
-    const invoicePath = `pdfs/invoice_${data.rows[0].id}.pdf`;
+    const invoicePath = `src/pdfs/invoice_${data.rows[0].id}.pdf`;
+
+    const directory = path.dirname(invoicePath);
+    if (!fs.existsSync(directory)) {
+      fs.mkdirSync(directory, { recursive: true });
+    }
 
     doc.pipe(fs.createWriteStream(invoicePath));
 
@@ -422,7 +428,7 @@ export const markInvoiceAsPaid = async (req: Request, res: Response) => {
         from: `${APP_EMAIL}`,
         to: `${data.rows[0].clientemail}`,
         subject: "Invoice for your request",
-        text: 'Please find attached PDF copy of paid invoice',
+        text: "Please find attached PDF copy of paid invoice",
         attachments: [
           {
             filename: "invoice.pdf",
