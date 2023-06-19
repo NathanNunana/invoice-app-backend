@@ -4,6 +4,16 @@ import pool from "../server";
 import nodemailer from "nodemailer";
 import { APP_EMAIL, APP_PASSWORD } from "../utils/secrets";
 import Mailgen from "mailgen";
+import PDFDocument from "pdfkit";
+import fs from "fs";
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: APP_EMAIL,
+    pass: APP_PASSWORD,
+  },
+});
 
 /**
  * create invoice controller
@@ -42,17 +52,9 @@ export const createInvoice = async (req: Request, res: Response) => {
             '${JSON.stringify(data.clientAddress)}', 
             '${JSON.stringify(data.items)}')`;
 
-    console.log(query)
+    console.log(query);
     // run query
     const invoice = await pool.query(query);
-
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: APP_EMAIL,
-        pass: APP_PASSWORD,
-      },
-    });
 
     // Create a Mailgen instance
     const mailGenerator = new Mailgen({
@@ -265,6 +267,180 @@ export const markInvoiceAsPaid = async (req: Request, res: Response) => {
     `;
     // run query
     const invoice = await pool.query(query);
+
+    const data = await pool.query(`SELECT * FROM invoices WHERE id = '${id}'`);
+
+    console.log(data.rows[0]);
+
+    let doc = new PDFDocument({ size: "A4", margin: 50 });
+
+    const generateTableRow = (
+      doc: any,
+      y: number,
+      c1: string,
+      c3: string,
+      c4: string,
+      c5: string
+    ) => {
+      doc
+        .fontSize(10)
+        .text(c1, 50, y)
+        .text(c3, 280, y, { width: 90, align: "right" })
+        .text(c4, 370, y, { width: 90, align: "right" })
+        .text(c5, 0, y, { align: "right" });
+    };
+
+    const generateInvoiceTable = (doc: any, invoice: any) => {
+      let i;
+      const invoiceTableTop = 330;
+
+      doc.font("Helvetica-Bold");
+      generateTableRow(
+        doc,
+        invoiceTableTop,
+        "Item",
+        "Unit Cost",
+        "Quantity",
+        "Total"
+      );
+      generateHr(doc, invoiceTableTop + 20);
+      doc.font("Helvetica");
+
+      for (i = 0; i < invoice.items.length; i++) {
+        const item = invoice.items[i];
+        const position = invoiceTableTop + (i + 1) * 30;
+        generateTableRow(
+          doc,
+          position,
+          item.name,
+          item.price,
+          item.quantity,
+          (item.quantity * item.price).toString()
+        );
+
+        generateHr(doc, position + 20);
+      }
+
+      const subtotalPosition = invoiceTableTop + (i + 1) * 30;
+      generateTableRow(
+        doc,
+        subtotalPosition,
+        "",
+        "Total",
+        "",
+        invoice.total
+      );
+
+      const paidToDatePosition = subtotalPosition + 20;
+      generateTableRow(
+        doc,
+        paidToDatePosition,
+        "",
+        "Status",
+        "",
+        invoice.status
+      );
+
+      // const duePosition = paidToDatePosition + 25;
+      // doc.font("Helvetica-Bold");
+      // generateTableRow(doc, duePosition, "", "Balance Due", "", "0");
+      // doc.font("Helvetica");
+    };
+
+    const generateHr = (doc: any, y: number) => {
+      doc
+        .strokeColor("#aaaaaa")
+        .lineWidth(1)
+        .moveTo(50, y)
+        .lineTo(550, y)
+        .stroke();
+    };
+
+    doc
+      // .image(`logo.png`, 50, 45, { width: 50 })
+      .fillColor("#444444")
+      .fontSize(20)
+      .text("Amalitech.", 110, 57)
+      .fontSize(10)
+      .text("Amalitech.", 200, 50, { align: "right" })
+      .text("123 Main Street", 200, 65, { align: "right" })
+      .text("Takoradi, TD, 10025", 200, 80, { align: "right" })
+      .moveDown();
+
+    doc.fillColor("#444444").fontSize(20).text("Invoice", 50, 160);
+
+    generateHr(doc, 185);
+
+    const customerInformationTop = 200;
+
+    doc
+      .fontSize(10)
+      .text("Invoice Number:", 50, customerInformationTop)
+      .font("Helvetica-Bold")
+      .text(data.rows[0].id, 150, customerInformationTop)
+      .font("Helvetica")
+      .text("Invoice Date:", 50, customerInformationTop + 15)
+      .text(
+        data.rows[0].createdat.toString().substring(0, 10),
+        150,
+        customerInformationTop + 15
+      )
+      .text("Balance Due:", 50, customerInformationTop + 30)
+      .text(data.rows[0].total, 150, customerInformationTop + 30)
+
+      .font("Helvetica-Bold")
+      .text(data.rows[0].name, 300, customerInformationTop)
+      .font("Helvetica")
+      .text(data.rows[0].clientaddress.street, 300, customerInformationTop + 15)
+      .text(
+        data.rows[0].clientaddress.city +
+          ", " +
+          data.rows[0].clientaddress.postcode +
+          ", " +
+          data.rows[0].clientaddress.country,
+        300,
+        customerInformationTop + 30
+      )
+      .moveDown();
+
+    generateHr(doc, 252);
+
+    generateInvoiceTable(doc, data.rows[0]);
+
+    doc
+      .fontSize(10)
+      .text(
+        "Payment is due within 15 days. Thank you for your business.",
+        50,
+        780,
+        { align: "center", width: 500 }
+      );
+
+    
+    doc.end();
+
+    const invoicePath = `invoice_${data.rows[0].id}.pdf`
+
+    doc.pipe(fs.createWriteStream(invoicePath));
+
+    await transporter
+      .sendMail({
+        from: `${APP_EMAIL}`,
+        to: `${data.rows[0].clientEmail}`,
+        subject: "Invoice for your request",
+        attachments: [{
+          filename: 'invoice.pdf',
+          path: invoicePath,
+          contentType: 'application/pdf',
+        }],
+      })
+      .then(() =>
+        res.status(201).json({
+          msg: "You should receive an email",
+        })
+      )
+      .catch((e) => res.status(500).json({ error: e }));
+
     // json response
     res.json({
       success: true,

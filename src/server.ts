@@ -31,8 +31,8 @@ app.listen(app.get("port"), () => {
  * db connection
  */
 const pool =
-  process?.env.NODE_ENV === "development"
-    ? 
+  // process?.env.NODE_ENV === "development"
+  //   ? 
     new Pool({
         user: POSTGRES_USER,
         host: POSTGRES_HOST,
@@ -40,11 +40,11 @@ const pool =
         password: POSTGRES_PASSWORD,
         port: parseInt(POSTGRES_PORT),
       })
-    : new Pool({
-        connectionString: DATABASE_URL,
-        ssl: {
-          rejectUnauthorized: false,
-        },
-      });
+    // : new Pool({
+    //     connectionString: DATABASE_URL,
+    //     ssl: {
+    //       rejectUnauthorized: false,
+    //     },
+      // });
 
 export default pool;
