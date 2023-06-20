@@ -124,18 +124,16 @@ export const createInvoice = async (req: Request, res: Response) => {
       : await transporter
           .sendMail(mailOptions)
           .then(() =>
-            res.status(201).json({
-              msg: "You should receive an email",
+            // json response
+            res.json({
+              success: true,
+              message: `invoice with id: ${id
+                .substring(0, 6)
+                .toUpperCase()} created.`,
+              invoice: invoice,
             })
           )
           .catch((e) => res.status(500).json({ error: e }));
-
-    // json response
-    res.json({
-      success: true,
-      message: `invoice with id: ${id.substring(0, 6).toUpperCase()} created.`,
-      invoice: invoice,
-    });
   } catch (e) {
     console.log(e);
   }
